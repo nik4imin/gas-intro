@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#000000">
+  <title>Akademi Bahasa Digital — Intro</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+      font-family: Arial, sans-serif;
+    }
+    .intro {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: #000;
+    }
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #000;
+    }
+    .fallback {
+      position: absolute;
+      inset: auto 20px 28px;
+      display: none;
+      text-align: center;
+      color: #fff;
+      z-index: 2;
+    }
+    .fallback p {
+      margin: 0 0 12px;
+      font-size: 14px;
+      text-shadow: 0 1px 5px #000;
+    }
+    .fallback button, .fallback a {
+      display: inline-block;
+      border: 1px solid rgba(255,255,255,.75);
+      border-radius: 999px;
+      padding: 11px 20px;
+      color: #fff;
+      background: rgba(20,20,20,.78);
+      font-size: 14px;
+      text-decoration: none;
+      cursor: pointer;
+      margin: 4px;
+    }
+    .fade-out {
+      animation: fadeOut 900ms ease forwards;
+    }
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .fade-out { animation-duration: 200ms; }
+    }
+  </style>
+</head>
+<body>
+  <main class="intro" id="intro">
+    <video
+      id="cinematic"
+      autoplay
+      playsinline
+      preload="auto"
+      disablepictureinpicture
+      controlslist="nodownload noplaybackrate"
+    >
+      <source
+        src="https://res.cloudinary.com/mysdd1oj/video/upload/v1794457356/Storyboard_animation_camera_pan_e89ae0a9_9.mp4"
+        type="video/mp4"
+      >
+      Browser anda tidak menyokong video HTML5.
+    </video>
+
+    <div class="fallback" id="fallback">
+      <p id="message">Jika video tidak bermula secara automatik, tekan butang di bawah.</p>
+      <button id="startButton" type="button">Mula video</button>
+      <a href="https://canva.link/2m7gzkh3e45sren">Terus ke laman utama</a>
+    </div>
+  </main>
+
+  <script>
+    const video = document.getElementById('cinematic');
+    const intro = document.getElementById('intro');
+    const fallback = document.getElementById('fallback');
+    const startButton = document.getElementById('startButton');
+    const message = document.getElementById('message');
+    const homepage = 'https://canva.link/2m7gzkh3e45sren';
+
+    let redirecting = false;
+
+    function goToHomepage() {
+      if (redirecting) return;
+      redirecting = true;
+      intro.classList.add('fade-out');
+      window.setTimeout(() => {
+        window.location.replace(homepage);
+      }, 900);
+    }
+
+    // Cuba main dengan audio dahulu. Jika browser menyekat autoplay bersuara,
+    // paparkan butang mula supaya pengunjung boleh mengaktifkan audio.
+    video.muted = false;
+    const playAttempt = video.play();
+
+    if (playAttempt !== undefined) {
+      playAttempt.catch(() => {
+        video.muted = true;
+        video.play().then(() => {
+          message.textContent = 'Video dimainkan tanpa bunyi. Jika mahu bunyi, muat semula halaman dan tekan Mula video.';
+          fallback.style.display = 'block';
+          startButton.textContent = 'Aktifkan bunyi';
+        }).catch(() => {
+          message.textContent = 'Video tidak dapat dimainkan secara automatik. Tekan Mula video.';
+          fallback.style.display = 'block';
+          startButton.textContent = 'Mula video';
+        });
+      });
+    }
+
+    startButton.addEventListener('click', async () => {
+      try {
+        video.muted = false;
+        await video.play();
+        fallback.style.display = 'none';
+      } catch (error) {
+        message.textContent = 'Video belum dapat dimainkan. Semak sambungan internet atau gunakan pautan homepage.';
+        fallback.style.display = 'block';
+      }
+    });
+
+    video.addEventListener('ended', goToHomepage);
+
+    video.addEventListener('error', () => {
+      message.textContent = 'Video gagal dimuatkan. Anda boleh terus ke laman utama.';
+      startButton.style.display = 'none';
+      fallback.style.display = 'block';
+    });
+
+    // Jika video mengambil masa terlalu lama untuk mula dimuatkan,
+    // sediakan pautan ke homepage sebagai pilihan.
+    video.addEventListener('waiting', () => {
+      if (video.currentTime === 0) {
+        message.textContent = 'Video sedang dimuatkan. Jika tidak bermula, cuba butang Mula video.';
+        fallback.style.display = 'block';
+      }
+    });
+    video.addEventListener('playing', () => {
+      fallback.style.display = 'none';
+    });
+  </script>
+</body>
+</html>
